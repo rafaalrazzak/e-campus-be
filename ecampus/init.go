@@ -3,7 +3,7 @@ package ecampus
 import (
 	"context"
 
-	"github.com/go-bun/bun-starter-kit/bunapp"
+	"ecampus-be/bunapp"
 )
 
 func init() {

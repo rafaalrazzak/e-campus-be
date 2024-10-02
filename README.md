@@ -1,6 +1,6 @@
 # bun starter kit
 
-[![build workflow](https://github.com/go-bun/bun-starter-kit/actions/workflows/build.yml/badge.svg)](https://github.com/go-bun/bun-starter-kit/actions)
+[![build workflow](https://ecampus-be/actions/workflows/build.yml/badge.svg)](https://ecampus-be/actions)
 
 Bun starter kit consists of:
 
@@ -18,7 +18,7 @@ API built with Bun starter kit.
 To start using this kit, clone the repo:
 
 ```shell
-git clone https://github.com/go-bun/bun-starter-kit.git
+git clone https://ecampus-be.git
 ```
 
 Make sure you have correct information in `app/config/test.yaml` and then run migrations (database

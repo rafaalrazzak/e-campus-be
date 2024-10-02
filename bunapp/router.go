@@ -3,7 +3,7 @@ package bunapp
 import (
 	"net/http"
 
-	"github.com/go-bun/bun-starter-kit/httputil/httperror"
+	"ecampus-be/httputil/httperror"
 	"github.com/uptrace/bunrouter"
 	"github.com/uptrace/bunrouter/extra/bunrouterotel"
 	"github.com/uptrace/bunrouter/extra/reqlog"

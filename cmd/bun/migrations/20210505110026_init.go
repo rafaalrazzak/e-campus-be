@@ -2,9 +2,9 @@ package migrations
 
 import (
 	"context"
-	"github.com/go-bun/bun-starter-kit/ecampus"
+	"ecampus-be/ecampus"
 
-	"github.com/go-bun/bun-starter-kit/bunapp"
+	"ecampus-be/bunapp"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dbfixture"
 )

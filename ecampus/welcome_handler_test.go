@@ -4,7 +4,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-bun/bun-starter-kit/testbed"
+	"ecampus-be/testbed"
 	"github.com/stretchr/testify/require"
 )
 

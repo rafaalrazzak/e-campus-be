@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-bun/bun-starter-kit/bunapp"
+	"ecampus-be/bunapp"
 	"github.com/stretchr/testify/require"
 )
 

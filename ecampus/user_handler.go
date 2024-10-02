@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-bun/bun-starter-kit/ecampus/helpers"
+	"ecampus-be/ecampus/helpers"
 	"net/http"
 
 	"github.com/bwmarrin/snowflake"
-	"github.com/go-bun/bun-starter-kit/bunapp"
+	"ecampus-be/bunapp"
 	"github.com/uptrace/bunrouter"
 )
 
