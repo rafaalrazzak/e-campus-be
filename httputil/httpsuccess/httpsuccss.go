@@ -36,8 +36,9 @@ func Created(w http.ResponseWriter, message string, data interface{}) error {
 	return nil
 }
 
-func OK(w http.ResponseWriter, message string, data interface{}) {
+func OK(w http.ResponseWriter, message string, data interface{}) error {
 	New(w, http.StatusOK, message, data)
+	return nil
 }
 
 func NoContent(w http.ResponseWriter, message string) error {
