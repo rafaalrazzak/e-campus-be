@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -28,27 +29,23 @@ func AppFromContext(ctx context.Context) *App {
 
 // ContextWithApp sets the App instance in the context.
 func ContextWithApp(ctx context.Context, app *App) context.Context {
-	ctx = context.WithValue(ctx, appCtxKey{}, app)
-	return ctx
+	return context.WithValue(ctx, appCtxKey{}, app)
 }
 
 // App represents the application context.
 type App struct {
-	ctx context.Context
-	cfg *AppConfig
-
-	stopping uint32
-	stopCh   chan struct{}
-
+	ctx         context.Context
+	cfg         *AppConfig
+	stopping    uint32
+	stopCh      chan struct{}
 	onStop      appHooks
 	onAfterStop appHooks
-
-	router    *bunrouter.Router
-	apiRouter *bunrouter.Group
-
-	// lazy init
-	dbOnce sync.Once
-	db     *bun.DB
+	router      *bunrouter.Router
+	apiRouter   *bunrouter.Group
+	dbOnce      sync.Once
+	db          *bun.DB
+	redisOnce   sync.Once
+	redisClient *redis.Client
 }
 
 // New creates a new App instance.
@@ -79,11 +76,12 @@ func Start(ctx context.Context, service, envName string) (context.Context, *App,
 // StartConfig initializes the app with the provided configuration.
 func StartConfig(ctx context.Context, cfg *AppConfig) (context.Context, *App, error) {
 	rand.Seed(time.Now().UnixNano())
-
 	app := New(ctx, cfg)
+
 	if err := onStart.Run(ctx, app); err != nil {
 		return nil, nil, err
 	}
+
 	return app.ctx, app, nil
 }
 
@@ -141,14 +139,9 @@ func (app *App) APIRouter() *bunrouter.Group {
 // DB initializes and returns the database connection.
 func (app *App) DB() *bun.DB {
 	app.dbOnce.Do(func() {
-		dsn := app.cfg.DB.DSN
-		sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
-
+		sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(app.cfg.DbUrl)))
 		db := bun.NewDB(sqldb, pgdialect.New())
-		db.AddQueryHook(bundebug.NewQueryHook(
-			bundebug.WithEnabled(app.IsDebug()),
-			bundebug.FromEnv(""),
-		))
+		db.AddQueryHook(bundebug.NewQueryHook(bundebug.WithEnabled(app.IsDebug())))
 
 		app.OnStop("db.Close", func(ctx context.Context, _ *App) error {
 			return db.Close()
@@ -159,14 +152,29 @@ func (app *App) DB() *bun.DB {
 	return app.db
 }
 
+// Redis initializes and returns the Redis client.
+func (app *App) Redis() *redis.Client {
+
+	opt, err := redis.ParseURL(app.cfg.RedisUrl)
+	if err != nil {
+		panic(err)
+	}
+
+	app.redisOnce.Do(func() {
+		client := redis.NewClient(opt)
+
+		app.OnStop("redis.Close", func(ctx context.Context, _ *App) error {
+			return client.Close()
+		})
+
+		app.redisClient = client
+	})
+	return app.redisClient
+}
+
 // WaitExitSignal listens for termination signals and returns the first received signal.
 func WaitExitSignal() os.Signal {
 	ch := make(chan os.Signal, 3)
-	signal.Notify(
-		ch,
-		syscall.SIGINT,
-		syscall.SIGQUIT,
-		syscall.SIGTERM,
-	)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM)
 	return <-ch
 }

@@ -34,9 +34,8 @@ type AppConfig struct {
 	Env       string
 	Debug     bool
 	SecretKey string
-	DB        struct {
-		DSN string
-	}
+	DbUrl     string
+	RedisUrl  string
 }
 
 // LoadConfig loads the configuration from a .env file.
@@ -51,9 +50,9 @@ func LoadConfig(service, env string) (*AppConfig, error) {
 		Env:       env,
 		Debug:     os.Getenv("DEBUG") == "true",
 		SecretKey: os.Getenv("SECRET_KEY"),
+		DbUrl:     os.Getenv("DATABASE_URL"),
+		RedisUrl:  os.Getenv("REDIS_URL"),
 	}
-
-	cfg.DB.DSN = os.Getenv("DATABASE_DSN")
 
 	return cfg, nil
 }
