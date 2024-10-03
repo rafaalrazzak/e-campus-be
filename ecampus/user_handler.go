@@ -1,14 +1,15 @@
 package ecampus
 
 import (
+	"ecampus-be/httputil/httperror"
+	"ecampus-be/httputil/httpsuccess"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"ecampus-be/ecampus/helpers"
 	"net/http"
 
-	"github.com/bwmarrin/snowflake"
 	"ecampus-be/bunapp"
+	"github.com/bwmarrin/snowflake"
 	"github.com/uptrace/bunrouter"
 )
 
@@ -33,13 +34,14 @@ func NewUserHandler(app *bunapp.App) *UserHandler {
 	return &UserHandler{app: app}
 }
 
+// List handles retrieving all users.
 func (h *UserHandler) List(w http.ResponseWriter, req bunrouter.Request) error {
 	var users []User
 	if err := h.app.DB().NewSelect().
 		Model(&users).
 		Column("id", "name", "email", "phone", "username", "role", "group", "major", "year").
 		Scan(req.Context()); err != nil {
-		return h.handleError(w, err, http.StatusInternalServerError)
+		return httperror.New(http.StatusInternalServerError, "database_error", "Failed to retrieve users")
 	}
 
 	responseUsers := make([]UserResponse, len(users))
@@ -50,10 +52,11 @@ func (h *UserHandler) List(w http.ResponseWriter, req bunrouter.Request) error {
 	return bunrouter.JSON(w, responseUsers)
 }
 
+// Get handles retrieving a specific user by ID.
 func (h *UserHandler) Get(w http.ResponseWriter, req bunrouter.Request) error {
 	id, err := h.parseID(req.Param("id"))
 	if err != nil {
-		return h.handleError(w, err, http.StatusBadRequest)
+		return httperror.New(http.StatusBadRequest, "invalid_id", "Invalid user ID format")
 	}
 
 	var user User
@@ -62,72 +65,50 @@ func (h *UserHandler) Get(w http.ResponseWriter, req bunrouter.Request) error {
 		Column("id", "name", "email", "phone", "username", "role", "group", "major", "year").
 		Where("id = ?", id).
 		Scan(req.Context()); err != nil {
-		return h.handleError(w, err, http.StatusNotFound)
+		return httperror.New(http.StatusNotFound, "user_not_found", "User not found")
 	}
 
 	return bunrouter.JSON(w, h.toUserResponse(&user))
 }
 
-func (h *UserHandler) Create(w http.ResponseWriter, req bunrouter.Request) error {
-	var user User
-	if err := json.NewDecoder(req.Body).Decode(&user); err != nil {
-		return h.handleError(w, err, http.StatusBadRequest)
-	}
-
-	node, err := snowflake.NewNode(1)
-	if err != nil {
-		return h.handleError(w, err, http.StatusInternalServerError)
-	}
-	user.ID = node.Generate().Int64()
-	user.Password, err = helpers.PasswordHasher
-	if err != nil {
-		return h.handleError(w, err, http.StatusInternalServerError)
-	}
-
-	if _, err := h.app.DB().NewInsert().Model(&user).Exec(req.Context()); err != nil {
-		return h.handleError(w, err, http.StatusInternalServerError)
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	return bunrouter.JSON(w, h.toUserResponse(&user))
-}
-
+// Update handles updating a user by ID.
 func (h *UserHandler) Update(w http.ResponseWriter, req bunrouter.Request) error {
 	id, err := h.parseID(req.Param("id"))
 	if err != nil {
-		return h.handleError(w, err, http.StatusBadRequest)
+		return httperror.New(http.StatusBadRequest, "invalid_id", "Invalid user ID format")
 	}
 
 	var user User
 	if err := json.NewDecoder(req.Body).Decode(&user); err != nil {
-		return h.handleError(w, err, http.StatusBadRequest)
+		return httperror.New(http.StatusBadRequest, "invalid_json", "Invalid JSON payload")
 	}
 
 	if user.ID != id {
-		return h.handleError(w, errors.New("ID mismatch"), http.StatusBadRequest)
+		return httperror.New(http.StatusBadRequest, "id_mismatch", "ID in URL does not match the user ID")
 	}
 
 	if _, err := h.app.DB().NewUpdate().Model(&user).Where("id = ?", id).Exec(req.Context()); err != nil {
-		return h.handleError(w, err, http.StatusInternalServerError)
+		return httperror.New(http.StatusInternalServerError, "update_error", "Failed to update user")
 	}
 
 	return bunrouter.JSON(w, h.toUserResponse(&user))
 }
 
+// Delete handles deleting a user by ID.
 func (h *UserHandler) Delete(w http.ResponseWriter, req bunrouter.Request) error {
 	id, err := h.parseID(req.Param("id"))
 	if err != nil {
-		return h.handleError(w, err, http.StatusBadRequest)
+		return httperror.BadRequest("invalid_id", "Invalid user ID format")
 	}
 
 	if _, err := h.app.DB().NewDelete().Model((*User)(nil)).Where("id = ?", id).Exec(req.Context()); err != nil {
-		return h.handleError(w, err, http.StatusInternalServerError)
+		return httperror.New(http.StatusInternalServerError, "delete_error", "Failed to delete user")
 	}
 
-	w.WriteHeader(http.StatusNoContent)
-	return nil
+	return httpsuccess.NoContent(w, "User deleted successfully")
 }
 
+// parseID converts a string ID to an int64.
 func (h *UserHandler) parseID(idStr string) (int64, error) {
 	id, err := snowflake.ParseString(idStr)
 	if err != nil {
@@ -136,11 +117,7 @@ func (h *UserHandler) parseID(idStr string) (int64, error) {
 	return id.Int64(), nil
 }
 
-func (h *UserHandler) handleError(w http.ResponseWriter, err error, status int) error {
-	http.Error(w, err.Error(), status)
-	return err
-}
-
+// toUserResponse converts a User to UserResponse.
 func (h *UserHandler) toUserResponse(user *User) UserResponse {
 	return UserResponse{
 		ID:       user.ID,
@@ -155,6 +132,7 @@ func (h *UserHandler) toUserResponse(user *User) UserResponse {
 	}
 }
 
+// MarshalJSON for custom JSON serialization.
 func (ur UserResponse) MarshalJSON() ([]byte, error) {
 	type Alias UserResponse
 	return json.Marshal(&struct {

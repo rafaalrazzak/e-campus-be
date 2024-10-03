@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ecampus-be/ecampus"
 	"fmt"
 	"log"
 	"net/http"
@@ -50,6 +51,10 @@ var serverCommand = &cli.Command{
 		var handler http.Handler
 		handler = app.Router()
 		handler = httputil.ExitOnPanicHandler{Next: handler}
+
+		if err := ecampus.InitAuth(app.Config()); err != nil {
+			log.Fatalf("Failed to initialize auth module: %v", err)
+		}
 
 		srv := &http.Server{
 			Addr:         c.String("addr"),
