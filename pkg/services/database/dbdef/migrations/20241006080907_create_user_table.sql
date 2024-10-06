@@ -22,5 +22,5 @@ CREATE TABLE IF NOT EXISTS public."users" (
 
 -- +goose Down
 -- +goose StatementBegin
-SELECT 'down SQL query';
+DROP TABLE public."users";
 -- +goose StatementEnd

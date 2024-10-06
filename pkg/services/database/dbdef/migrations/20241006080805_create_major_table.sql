@@ -8,5 +8,5 @@ CREATE TABLE majors (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE majors;
+DROP TABLE public.majors;
 -- +goose StatementEnd

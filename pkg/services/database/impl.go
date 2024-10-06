@@ -11,8 +11,8 @@ import (
 )
 
 type ECampusDB struct {
-	conn *sqlx.DB
-	gqdb *goqu.Database
+	Conn *sqlx.DB
+	QB   *goqu.Database
 }
 
 func NewECampusDBImpl(conn *sqlx.DB) *ECampusDB {
