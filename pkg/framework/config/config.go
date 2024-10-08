@@ -1,7 +1,7 @@
 package config
 
 type Config struct {
-	ServerPort string `env:"SERVER_PORT" envDefault:"3000"`
+	ServerPort string `env:"SERVER_PORT" envDefault:"8080"`
 	Database
 }
 

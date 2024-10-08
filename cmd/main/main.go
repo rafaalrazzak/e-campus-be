@@ -16,7 +16,8 @@ func Providers() fx.Option {
 		database.NewDatabaseConn,
 		database.NewECampusDBImpl,
 
-		http.NewFiberApp)
+		http.NewFiberApp,
+	)
 }
 
 func Entrypoint() fx.Option {
