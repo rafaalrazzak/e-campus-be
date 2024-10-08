@@ -33,3 +33,14 @@ func VerifyData(hash string, data string) bool {
 
 	return match
 }
+
+func GenerateSessionToken() (string, error) {
+	node, err := snowflake.NewNode(1)
+	if err != nil {
+		return "", err
+	}
+
+	id := node.Generate()
+
+	return id.String(), nil
+}

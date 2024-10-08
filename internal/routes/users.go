@@ -20,15 +20,15 @@ func checkUserExists(db *database.ECampusDB, field, value string) (bool, error) 
 	return false, err
 }
 
-func UserRoutes(app *fiber.App, db *database.ECampusDB) {
+func UserRoutes(app *fiber.App, db *database.ECampusDB) fiber.Router {
 	userRoute := app.Group("/users")
 
-	userRoute.Get("/", func(c *fiber.Ctx) (err error) {
+	userRoute.Get("/", func(c *fiber.Ctx) error {
 		query, _, _ := db.QB.From("users").Limit(10).ToSQL()
 		var users []database2.User
-		err = db.Conn.Select(&users, query)
+		err := db.Conn.Select(&users, query)
 		if err != nil {
-			return
+			return err
 		}
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -50,10 +50,7 @@ func UserRoutes(app *fiber.App, db *database.ECampusDB) {
 			return err
 		}
 		defer func(tx *sql.Tx) {
-			err := tx.Rollback()
-			if err != nil {
-				return
-			}
+			_ = tx.Rollback()
 		}(tx)
 
 		if exists, _ := checkUserExists(db, "username", user.Username); exists {
@@ -92,13 +89,9 @@ func UserRoutes(app *fiber.App, db *database.ECampusDB) {
 			return err
 		}
 		defer func(tx *sql.Tx) {
-			err := tx.Rollback()
-			if err != nil {
-				return
-			}
+			_ = tx.Rollback()
 		}(tx)
 
-		// Check if user not exists
 		if exists, _ := checkUserExists(db, "id", c.Params("id")); !exists {
 			return c.Status(http.StatusNotFound).JSON(fiber.Map{
 				"message": "user not found",
@@ -145,4 +138,5 @@ func UserRoutes(app *fiber.App, db *database.ECampusDB) {
 
 		return c.SendStatus(http.StatusNoContent)
 	})
+	return nil
 }

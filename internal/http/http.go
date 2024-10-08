@@ -4,17 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/rafaalrazzak/e-campus-be/internal/routes"
 	"github.com/rafaalrazzak/e-campus-be/pkg/framework/config"
-	"github.com/rafaalrazzak/e-campus-be/pkg/services/database"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
 
-func NewFiberApp(db *database.ECampusDB) *fiber.App {
+func NewFiberApp() *fiber.App {
 	app := fiber.New()
-
-	routes.UserRoutes(app, db)
 
 	return app
 }
@@ -22,16 +18,16 @@ func NewFiberApp(db *database.ECampusDB) *fiber.App {
 func ServeHTTP(lc fx.Lifecycle, app *fiber.App, config config.Config) {
 	lc.Append(
 		fx.Hook{
-			OnStart: func(ctx context.Context) (err error) {
+			OnStart: func(ctx context.Context) error {
 				go func() {
-					err = app.Listen(fmt.Sprintf(":%s", config.ServerPort))
-					if err != nil {
-						zap.L().Fatal("failed to start http server:", zap.Error(err))
+					if err := app.Listen(fmt.Sprintf(":%s", config.ServerPort)); err != nil {
+						zap.L().Fatal("Failed to start HTTP server:", zap.Error(err))
 					}
 				}()
 				return nil
 			},
 			OnStop: func(ctx context.Context) error {
+				// Gracefully shutdown Fiber app
 				return app.Shutdown()
 			},
 		})
