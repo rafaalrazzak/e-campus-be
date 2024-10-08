@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rafaalrazzak/e-campus-be/pkg/framework/config"
+	"github.com/rafaalrazzak/e-campus-be/pkg/framework/route"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -13,6 +14,14 @@ func NewFiberApp() *fiber.App {
 	app := fiber.New()
 
 	return app
+}
+
+func RegisterRoutes(routes []route.Route, app *fiber.App) error {
+	for _, r := range routes {
+		app.Use(r)
+	}
+
+	return nil
 }
 
 func ServeHTTP(lc fx.Lifecycle, app *fiber.App, config config.Config) {

@@ -5,12 +5,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	domain "github.com/rafaalrazzak/e-campus-be/internal/domain/database"
 	"github.com/rafaalrazzak/e-campus-be/internal/utils"
+	"github.com/rafaalrazzak/e-campus-be/pkg/framework/route"
 	"github.com/rafaalrazzak/e-campus-be/pkg/services/database"
 	"github.com/rafaalrazzak/e-campus-be/pkg/services/redis"
 	"net/http"
 )
 
-func AuthRoutes(db *database.ECampusDB, redisClient *redis.ECampusRedis) fiber.Router {
+func AuthRoutes(db *database.ECampusDB, redisClient *redis.ECampusRedis) route.Route {
 	authRoute := fiber.New().Group("/auth")
 
 	authRoute.Post("/login", func(c *fiber.Ctx) error {
@@ -109,5 +110,5 @@ func AuthRoutes(db *database.ECampusDB, redisClient *redis.ECampusRedis) fiber.R
 		})
 	})
 
-	return nil
+	return authRoute.(route.Route)
 }

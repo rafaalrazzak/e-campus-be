@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	database2 "github.com/rafaalrazzak/e-campus-be/internal/domain/database"
 	"github.com/rafaalrazzak/e-campus-be/internal/utils"
+	"github.com/rafaalrazzak/e-campus-be/pkg/framework/route"
 	"github.com/rafaalrazzak/e-campus-be/pkg/services/database"
 	"net/http"
 )
@@ -20,7 +21,7 @@ func checkUserExists(db *database.ECampusDB, field, value string) (bool, error) 
 	return false, err
 }
 
-func UserRoutes(app *fiber.App, db *database.ECampusDB) fiber.Router {
+func UserRoutes(app *fiber.App, db *database.ECampusDB) route.Route {
 	userRoute := app.Group("/users")
 
 	userRoute.Get("/", func(c *fiber.Ctx) error {
@@ -138,5 +139,6 @@ func UserRoutes(app *fiber.App, db *database.ECampusDB) fiber.Router {
 
 		return c.SendStatus(http.StatusNoContent)
 	})
-	return nil
+
+	return userRoute.(route.Route)
 }

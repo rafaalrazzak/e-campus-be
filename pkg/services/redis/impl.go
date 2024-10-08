@@ -5,6 +5,7 @@ import (
 	"github.com/rafaalrazzak/e-campus-be/pkg/framework/config"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 type ECampusRedis struct {
@@ -14,7 +15,7 @@ type ECampusRedis struct {
 func NewRedisImpl(lc fx.Lifecycle, cfg config.Config) *ECampusRedis {
 	opts, err := redis.ParseURL(cfg.Redis)
 	if err != nil {
-		panic("Failed to parse Redis URL: " + err.Error())
+		zap.L().Fatal("failed to parse Redis URL: ", zap.Error(err))
 	}
 
 	client := redis.NewClient(opts)
