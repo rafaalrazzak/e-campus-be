@@ -22,7 +22,8 @@ func Providers() fx.Option {
 func Entrypoint() fx.Option {
 	return fx.Invoke(
 		database.Migrator,
-		http.ServeHTTP)
+		http.ServeHTTP,
+	)
 }
 
 func Run() {
