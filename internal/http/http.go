@@ -23,6 +23,7 @@ func NewFiberApp(db *database.ECampusDB, redisClient *redis.ECampusRedisDB, cfg 
 
 	authRoute := app.Group("/auth")
 	authRoute.Post("/login", auth.Login(db, redisClient, cfg))
+	authRoute.Get("/session", auth.GetSession(redisClient, cfg))
 
 	return app
 }

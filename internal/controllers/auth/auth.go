@@ -36,7 +36,7 @@ func Login(db *database.ECampusDB, redisClient *redis.ECampusRedisDB, cfg config
 		}
 
 		sessionId := utils.GenerateSessionToken()
-		sessionToken := fmt.Sprintf("%d::%s", dbUser.ID, sessionId)
+		sessionToken := fmt.Sprintf("%d::%d", dbUser.ID, sessionId)
 
 		token, err := utils.GenerateSessionEncryption(sessionToken, cfg)
 		if err != nil {
@@ -65,6 +65,34 @@ func Login(db *database.ECampusDB, redisClient *redis.ECampusRedisDB, cfg config
 
 		return c.Status(http.StatusOK).JSON(fiber.Map{
 			"token": token,
+		})
+	}
+}
+
+func GetSession(redisClient *redis.ECampusRedisDB, cfg config.Config) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		token := c.Get("Authorization")
+
+		ctx := context.Background()
+
+		decrypt, err := utils.DecryptSessionToken(token, cfg)
+		if err != nil {
+			return fiber.NewError(fiber.StatusUnauthorized, "Invalid token")
+		}
+
+		userId, sessionId, err := utils.ParseSessionToken(decrypt)
+		if err != nil {
+			return fiber.NewError(fiber.StatusUnauthorized, "Invalid token")
+		}
+
+		redisKey := fmt.Sprintf(constants.Redis.SessionKey, userId, sessionId)
+		sessionData, err := redisClient.Client.HGetAll(ctx, redisKey).Result()
+		if err != nil {
+			return fiber.NewError(fiber.StatusUnauthorized, "Session not found")
+		}
+
+		return c.Status(http.StatusOK).JSON(fiber.Map{
+			"user": sessionData,
 		})
 	}
 }
