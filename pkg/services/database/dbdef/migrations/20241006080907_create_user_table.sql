@@ -5,7 +5,6 @@ CREATE TYPE user_role AS ENUM('ADMIN', 'LECTURE', 'STUDENT');
 CREATE TABLE IF NOT EXISTS public."users" (
     id bigserial primary key,
     name varchar(100) not null,
-    username varchar(50) unique not null,
     email varchar(100) unique not null,
     password text not null,
     role user_role not null,
@@ -15,10 +14,13 @@ CREATE TABLE IF NOT EXISTS public."users" (
     "group" int not null,
 
     constraint fk_major
-        foreign key (major)
-            references majors(code)
-);
+    foreign key (major)
+    references majors(code)
+    );
+
+CREATE INDEX idx_users_email ON public."users"(email);
 -- +goose StatementEnd
+
 
 -- +goose Down
 -- +goose StatementBegin
