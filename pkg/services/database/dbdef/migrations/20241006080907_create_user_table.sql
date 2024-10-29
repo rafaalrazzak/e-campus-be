@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS public."users" (
     year int not null,
     phone varchar(25) not null,
     "group" int not null,
+    picture text,
 
     constraint fk_major
     foreign key (major)

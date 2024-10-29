@@ -8,6 +8,7 @@ type User struct {
 	Role     string `db:"role" json:"role"`
 	Major    string `db:"major" json:"major"`
 	Year     int    `db:"year" json:"year"`
+	Picture  string `db:"picture" json:"picture"`
 	Phone    string `db:"phone" json:"phone"`
 	Group    int    `db:"group" json:"group"`
 }

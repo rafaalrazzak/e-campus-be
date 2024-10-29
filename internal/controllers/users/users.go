@@ -47,7 +47,7 @@ func CreateUser(db *database.ECampusDB) fiber.Handler {
 
 		query, _, _ := db.QB.Insert("users").Rows(user).Returning("id").ToSQL()
 		if err := db.Conn.QueryRow(query).Scan(&user.ID); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, "Failed to create user")
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
 		return c.SendStatus(http.StatusCreated)

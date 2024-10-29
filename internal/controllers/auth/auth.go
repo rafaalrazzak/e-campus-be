@@ -46,13 +46,14 @@ func Login(db *database.ECampusDB, redisClient *redis.ECampusRedisDB, cfg config
 		ctx := context.Background()
 
 		userData := map[string]interface{}{
-			"id":    dbUser.ID,
-			"email": dbUser.Email,
-			"name":  dbUser.Name,
-			"group": dbUser.Group,
-			"role":  dbUser.Role,
-			"major": dbUser.Major,
-			"year":  dbUser.Year,
+			"id":      dbUser.ID,
+			"email":   dbUser.Email,
+			"name":    dbUser.Name,
+			"group":   dbUser.Group,
+			"role":    dbUser.Role,
+			"major":   dbUser.Major,
+			"year":    dbUser.Year,
+			"picture": dbUser.Picture,
 		}
 
 		redisKey := fmt.Sprintf(constants.Redis.SessionKey, dbUser.ID, sessionId)
@@ -91,9 +92,7 @@ func GetSession(redisClient *redis.ECampusRedisDB, cfg config.Config) fiber.Hand
 			return fiber.NewError(fiber.StatusUnauthorized, "Session not found")
 		}
 
-		return c.Status(http.StatusOK).JSON(fiber.Map{
-			"user": sessionData,
-		})
+		return c.Status(http.StatusOK).JSON(sessionData)
 	}
 }
 
