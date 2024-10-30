@@ -78,9 +78,9 @@ func (s *UserService) fetchUsers(params UserFilters) ([]models.User, error) {
 
 type UserDetails struct {
 	models.BaseUser
-	DepartmentName  string  `db:"department_name"`
-	StudyPlanStatus *string `db:"study_plan_status"`
-	StudyPlanGrade  *string `db:"study_plan_grade"`
+	DepartmentName  string  `db:"department_name" json:"department_name"`
+	StudyPlanStatus *string `db:"study_plan_status" json:"study_plan_status"`
+	StudyPlanGrade  *string `db:"study_plan_grade" json:"study_plan_grade"`
 }
 
 func (s *UserService) GetUserByID(userID int64) (*UserDetails, error) {
